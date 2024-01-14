@@ -9,11 +9,11 @@ import random
 
 app = Flask(__name__)
 CORS(app)
-#C:/Users/danie/Desktop/dev/python/rub/train/runs/segment/train2/weights/
+
 model_path = 'last.pt'
 model = YOLO(model_path)
-regre_model = joblib.load('predict_model.pkl')
-
+weight_model = joblib.load('w_model.pkl')
+length_model= joblib.load('l_model.pkl')
 
 
 @app.route('/predict', methods=['POST'])
@@ -32,7 +32,7 @@ def predict():
     all_masks = []
     all_weight = []
     m = 0
-    m1 = 0
+    
     for result in results:
         for j, mask in enumerate(result.masks.data):
             color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
@@ -62,23 +62,24 @@ def predict():
             gratio = 0
 
             for polygon in polygons:
-                area, perimetro, aspect_ratio = caracteristicas(polygon)
+                area, perimeter, aspect_ratio = caracteristicas(polygon)
                 if area > garea:
                     garea = area
-                if perimetro > gperimetro:
-                    gperimetro = perimetro
+                if perimeter > gperimetro:
+                    gperimetro = perimeter
                 if aspect_ratio > gratio:
                     gratio = aspect_ratio
 
             print(garea, gperimetro, gratio, 3.10)
-            datos = np.array([garea, gperimetro, gratio, 3.10])
-            # Convertir el arreglo unidimensional a una matriz bidimensional
-            datos_2d = datos.reshape(1, -1)
-            predicciones_nuevas = regre_model.predict(datos_2d)
-            print('PREDECIR', predicciones_nuevas)
+            data = np.array([garea, gperimetro, gratio, 3.10])
 
-            objeto = {"peso":predicciones_nuevas.tolist()[0] , "color": '#{0:02x}{1:02x}{2:02x}'.format(*color)}
-            all_weight.append(objeto)
+            data_2d = data.reshape(1, -1)
+            w_predict = weight_model.predict(data_2d)
+            l_predict = length_model.predict(data_2d)
+            print('PREDICT', w_predict, l_predict)
+
+            result_object = {"peso":w_predict.tolist()[0] , "color": '#{0:02x}{1:02x}{2:02x}'.format(*color), "longitud": l_predict.tolist()[0]}
+            all_weight.append(result_object)
 
 
     combined_mask = sum(all_masks)
@@ -88,23 +89,23 @@ def predict():
 
 
 
-    return jsonify({'mask_base64': m, 'peso':all_weight})  # Devolver la máscara en base64
+    return jsonify({'mask_base64': m, 'peso':all_weight})
 
 
 def caracteristicas(polygon):
     points_pairs = [(polygon[i], polygon[i + 1]) for i in range(0, len(polygon), 2)]
     ply = np.array(points_pairs, dtype=np.float32)
-    # Calcula el área
+    
     area = cv2.contourArea(ply)
 
-    # Calcula el perímetro
-    perimetro = cv2.arcLength(ply, True)
+    
+    perimeter = cv2.arcLength(ply, True)
 
     x, y, w, h = cv2.boundingRect(ply)
 
     aspect_ratio = h / w if w > 0 else 0
 
-    return area, perimetro, aspect_ratio
+    return area, perimeter, aspect_ratio
 
 
 

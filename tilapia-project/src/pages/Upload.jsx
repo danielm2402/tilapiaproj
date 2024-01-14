@@ -27,8 +27,8 @@ export default function Upload() {
 
             const data = await response.json();
 
-            // Suponiendo que la respuesta contiene la máscara en base64
             setMaskBase64(data.mask_base64);
+
             setPeso(data.peso)
         } catch (error) {
             console.error('Error al realizar la predicción:', error);
@@ -52,7 +52,8 @@ export default function Upload() {
                         {peso.map(peso => {
                             return <div style={{ display: 'flex', alignItems: 'center', width: '50%' }}>
                                 <div style={{ width: '3rem', height: '3rem', backgroundColor: peso.color, marginRight: '2rem' }}></div>
-                                <h2>Peso: {peso.peso}</h2>
+                                <h2 style={{ paddingRight: '2rem' }}>Peso: {peso.peso}</h2>
+                                <h2>Longitud: {peso.longitud}</h2>
                             </div>
                         })}
                     </div>
