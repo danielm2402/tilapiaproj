@@ -8,6 +8,7 @@ export default function Main() {
             <div className={styles.bg} >
                 <h1>Detecta y predice <br></br> tus tilapias</h1>
                 <Link to="/upload">Comienza</Link>
+                <Link to="/overview">Compara</Link>
 
                 <div className={styles.items}>
                     <div>
